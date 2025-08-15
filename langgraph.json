@@ -1,0 +1,10 @@
+{
+  "dependencies": [
+    "."
+  ],
+  "graphs": {
+    "news_maker": "./src/graph/graph.py:build_graph"
+  },
+  "env": ".env",
+  "image_distro": "wolfi"
+}
