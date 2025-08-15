@@ -1,61 +1,65 @@
-# New LangGraph Project
+# News Maker (LangGraph + OpenAI TTS)
 
-[![CI](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/unit-tests.yml/badge.svg)](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/unit-tests.yml)
-[![Integration Tests](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/integration-tests.yml/badge.svg)](https://github.com/langchain-ai/new-langgraph-project/actions/workflows/integration-tests.yml)
+This project builds a small news pipeline using LangGraph and OpenAI TTS. It writes a short script (screenwriter), then has an Anchor (Sarah Johnson) and a Reporter (Michael Smith) speak their lines with real‑time audio streaming and terminal captions.
 
-This template demonstrates a simple application implemented using [LangGraph](https://github.com/langchain-ai/langgraph), designed for showing how to get started with [LangGraph Server](https://langchain-ai.github.io/langgraph/concepts/langgraph_server/#langgraph-server) and using [LangGraph Studio](https://langchain-ai.github.io/langgraph/concepts/langgraph_studio/), a visual debugging IDE.
+## Overview
+
+- Graph: `ask_topic -> manager -> (screen_writer) -> manager -> (anchor|reporter) -> manager -> ... -> END`
+- TTS: OpenAI `gpt-4o-mini-tts` streaming PCM; playback via `sounddevice`.
+- Captions: printed in the terminal while audio streams.
 
 <div align="center">
-  <img src="./static/studio_ui.png" alt="Graph view in LangGraph studio UI" width="75%" />
+  <img src="./static/graph.png" alt="News Maker graph diagram" width="75%" />
 </div>
 
-The core logic defined in `src/agent/graph.py`, showcases an single-step application that responds with a fixed string and the configuration provided.
+Key files:
+- `src/graph/graph.py`: builds and compiles the graph
+- `src/graph/state.py`: state model and helpers
+- `src/graph/nodes/*`: nodes (`ask_topic`, `screen_writer`, `anchor`, `reporter`, `manager`)
+- `src/graph/prompts/screen_writer.py`: screenwriter prompt (names, handoff etiquette)
+- `src/tts/adapter.py`: minimal streaming TTS adapter (PCM, 24 kHz)
 
-You can extend this graph to orchestrate more complex agentic workflows that can be visualized and debugged in LangGraph Studio.
+## Requirements
 
-## Getting Started
+- Python 3.10+
+- OpenAI API key in your .env
 
-1. Install dependencies, along with the [LangGraph CLI](https://langchain-ai.github.io/langgraph/concepts/langgraph_cli/), which will be used to run the server.
+## Install
 
 ```bash
-cd path/to/your/app
-pip install -e . "langgraph-cli[inmem]"
+pip install -e .
 ```
 
-2. (Optional) Customize the code and project as needed. Create a `.env` file if you need to use secrets.
+## Run (CLI)
 
 ```bash
-cp .env.example .env
+python -m src.app
 ```
 
-If you want to enable LangSmith tracing, add your LangSmith API key to the `.env` file.
+You’ll be prompted for a topic. Lines will print (captions) and play via speakers.
 
-```text
-# .env
-LANGSMITH_API_KEY=lsv2...
-```
+## Run (Studio)
 
-3. Start the LangGraph Server.
-
-```shell
+```bash
 langgraph dev
 ```
 
-For more information on getting started with LangGraph Server, [see here](https://langchain-ai.github.io/langgraph/tutorials/langgraph-platform/local-server/).
+Open the Studio URL from the terminal. The graph is configured as `news_maker` in `langgraph.json`.
 
-## How to customize
+## Environment variables
 
-1. **Define runtime context**: Modify the `Context` class in the `graph.py` file to expose the arguments you want to configure per assistant. For example, in a chatbot application you may want to define a dynamic system prompt or LLM to use. For more information on runtime context in LangGraph, [see here](https://langchain-ai.github.io/langgraph/agents/context/?h=context#static-runtime-context).
+Create a `.env` file in the project root:
 
-2. **Extend the graph**: The core logic of the application is defined in [graph.py](./src/agent/graph.py). You can modify this file to add new nodes, edges, or change the flow of information.
+```env
+OPENAI_API_KEY=sk-...
+# Optional:
+# LANGCHAIN_TRACING_V2=true
+# LANGCHAIN_API_KEY=...
+```
 
-## Development
+## View the graph (code)
 
-While iterating on your graph in LangGraph Studio, you can edit past state and rerun your app from previous states to debug specific nodes. Local changes will be automatically applied via hot reload.
+## Configuration
 
-Follow-up requests extend the same thread. You can create an entirely new thread, clearing previous history, using the `+` button in the top right.
-
-For more advanced features and examples, refer to the [LangGraph documentation](https://langchain-ai.github.io/langgraph/). These resources can help you adapt this template for your specific use case and build more sophisticated conversational agents.
-
-LangGraph Studio also integrates with [LangSmith](https://smith.langchain.com/) for more in-depth tracing and collaboration with teammates, allowing you to analyze and optimize your chatbot's performance.
-
+- TTS voice and sample rate can be adjusted in `src/tts/adapter.py` (defaults: 24 kHz, `alloy`/`verse`).
+- Names and handoff instructions are in `src/graph/prompts/screen_writer.py`.
