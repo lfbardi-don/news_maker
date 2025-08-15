@@ -57,8 +57,6 @@ OPENAI_API_KEY=sk-...
 # LANGCHAIN_API_KEY=...
 ```
 
-## View the graph (code)
-
 ## Configuration
 
 - TTS voice and sample rate can be adjusted in `src/tts/adapter.py` (defaults: 24 kHz, `alloy`/`verse`).
